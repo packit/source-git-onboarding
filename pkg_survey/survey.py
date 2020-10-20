@@ -1,3 +1,5 @@
+from typing import Dict
+
 import git
 import os
 import re
@@ -25,7 +27,7 @@ class CentosPkgValidatedConvert:
         self.project_info = project_info
         self.src_dir = ""
         self.rpm_dir = ""
-        self.result = {}
+        self.result: Dict[str, str] = {}
         self.srpm_path = ""
         self.distgit_branch = distgit_branch
 
