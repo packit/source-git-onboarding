@@ -1,21 +1,23 @@
+import os
+import re
+import shutil
+import subprocess
+from logging import getLogger
+from pathlib import Path
 from typing import Dict, Any, Optional
 
 import git
-import os
-import re
 import requests
-import subprocess
-import shutil
 import yaml
-
 from click.testing import CliRunner
+from dist2src.core import Dist2Src
 
 from packit.api import PackitAPI
-from packit.config import Config
 from packit.cli.utils import get_packit_api
+from packit.config import Config
 from packit.local_project import LocalProject
-from pathlib import Path
-from dist2src.core import Dist2Src
+
+logger = getLogger(__name__)
 
 work_dir = "/tmp/playground"
 rpms_path = f"{work_dir}/rpms"
@@ -142,14 +144,14 @@ class CentosPkgValidatedConvert:
 def fetch_centos_pkgs_info(page):
     i = 0
     while True:
-        print(page)
+        logger.info(page)
         r = requests.get(page)
         for p in r.json()["projects"]:
-            print(f"Processing package: {p['name']}")
+            logger.info(f"Processing package: {p['name']}")
             converter = CentosPkgValidatedConvert(p)
             converter.run(cleanup=True)
             if converter.result:
-                print(converter.result)
+                logger.info(converter.result)
                 result.append(converter.result)
         page = r.json()["pagination"]["next"]
         if not page:
@@ -162,7 +164,7 @@ def fetch_centos_pkgs_info(page):
 
 if __name__ == "__main__":
     if not os.path.exists(work_dir):
-        print("Your work_dir is missing.")
+        logger.warning("Your work_dir is missing.")
     if not os.path.exists(rpms_path):
         os.mkdir(rpms_path)
     if not os.path.exists("mock_error_builds"):

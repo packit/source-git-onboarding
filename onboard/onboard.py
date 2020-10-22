@@ -1,16 +1,20 @@
 import os
 import sys
+import logging
 from typing import List
 
 from git import Repo
 
 from ogr import GitlabService
+from ogr.abstract import AccessLevel, GitService
 from ogr.services.gitlab import GitlabProject
 from ogr.services.pagure import PagureService
-from ogr.abstract import AccessLevel, GitService
 
-from survey import CentosPkgValidatedConvert
 from add_master_branch import AddMasterBranch
+from survey import CentosPkgValidatedConvert
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=os.getenv("LOGLEVEL", "INFO"))
 
 DEFAULT_BRANCH = "c8s"
 
@@ -39,18 +43,18 @@ class OnboardCentosPKG:
 
         project = self.service.get_project(namespace=self.namespace, repo=pkg_name)
         if project.exists():
-            print(f"Source repo for {pkg_name} already exists")
+            logger.info(f"Source repo for {pkg_name} already exists")
             if (
                 isinstance(project, GitlabProject)
                 and project.gitlab_repo.visibility == "private"
             ):
-                print("Making the repository public.")
+                logger.info("Making the repository public.")
                 project.gitlab_repo.visibility = "public"
                 project.gitlab_repo.save()
 
             return
         converter.run(skip_build=False)
-        print(converter.result)
+        logger.debug(f"converter.result: {converter.result}")
         with open("/in/result.yml", "a+") as out:
             out.write(f"{converter.result}\n")
         if (
@@ -58,19 +62,20 @@ class OnboardCentosPKG:
             or "error" in converter.result
             or converter.result.get("conditional_patch")
         ):
-            print(f"Onboard aborted for {pkg_name}:")
+            logger.warning(f"Onboard aborted for {pkg_name}:")
             return
-        print(f"Onboard successful for {pkg_name}:")
-        print(
+        logger.info(f"Onboard successful for {pkg_name}:")
+        logger.info(
             f"Creating source-git repo: {self.namespace}/{pkg_name} at {self.service.instance_url}"
         )
+
         new_project = self.service.project_create(
             repo=pkg_name,
             namespace=self.namespace,
             description=f"Source git repo for {pkg_name}.\n"
             f"For more info see: http://packit.dev/docs/source-git/",
         )
-        print(f"Project created: {new_project.get_web_url()}")
+        logger.info(f"Project created: {new_project.get_web_url()}")
 
         if isinstance(new_project, GitlabProject):
             new_project.gitlab_repo.visibility = "public"
@@ -96,7 +101,6 @@ if __name__ == "__main__":
     pagure_token = os.getenv("PAGURE_TOKEN")
     gitlab_token = os.getenv("GITLAB_TOKEN")
     if pagure_token:
-
         ocp = OnboardCentosPKG(
             service=PagureService(
                 token=pagure_token, instance_url="https://git.stg.centos.org/"
@@ -115,7 +119,7 @@ if __name__ == "__main__":
             maintainers_group=[],
         )
     else:
-        print("Define PAGURE_TOKEN or GITLAB_TOKEN")
+        logger.error("Define PAGURE_TOKEN or GITLAB_TOKEN")
         sys.exit(1)
 
     os.makedirs("/tmp/playground/rpms", exist_ok=True)
@@ -131,5 +135,5 @@ if __name__ == "__main__":
             package, branch = split
         else:
             package, branch = split[0], DEFAULT_BRANCH
-        print(f"Onboarding {package} using '{branch}' branch")
+        logger.info(f"Onboarding {package} using '{branch}' branch")
         ocp.run(pkg_name=package, branch=branch)
