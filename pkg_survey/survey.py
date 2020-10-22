@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any, Optional
 
 import git
 import os
@@ -9,6 +9,8 @@ import shutil
 import yaml
 
 from click.testing import CliRunner
+
+from packit.api import PackitAPI
 from packit.config import Config
 from packit.cli.utils import get_packit_api
 from packit.local_project import LocalProject
@@ -27,9 +29,11 @@ class CentosPkgValidatedConvert:
         self.project_info = project_info
         self.src_dir = ""
         self.rpm_dir = ""
-        self.result: Dict[str, str] = {}
+        self.result: Dict[str, Any] = {}
+        self.packit_api: Optional[PackitAPI] = None
         self.srpm_path = ""
         self.distgit_branch = distgit_branch
+        self.d2s: Optional[Dist2Src] = None
 
     def clone(self):
         git_url = f"https://git.centos.org/{self.project_info['fullname']}"
@@ -150,7 +154,7 @@ def fetch_centos_pkgs_info(page):
         page = r.json()["pagination"]["next"]
         if not page:
             break
-        i = i + 1
+        i += 1
         if not (i % 2):
             with open("intermediate-result.yml", "w") as outfile:
                 yaml.dump(result, outfile)
