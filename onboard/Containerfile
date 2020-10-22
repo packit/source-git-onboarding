@@ -1,11 +1,8 @@
 FROM localhost/dist2src
 
-RUN dnf install epel-release -y && dnf install mock -y && \
+RUN dnf -y install epel-release && dnf -y install mock && \
     pip3 install git+git://github.com/packit/ogr.git --upgrade
 
-ADD ../pkg_survey/survey.py /workdir
-ADD onboard/run-onboard.sh /workdir
-ADD onboard/onboard.py /workdir
-ADD master-branches/* /workdir
+COPY pkg_survey/survey.py onboard/run-onboard.sh onboard/onboard.py master-branches/* /workdir
 
 CMD bash /workdir/run-onboard.sh
