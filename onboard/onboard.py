@@ -54,7 +54,7 @@ class OnboardCentosPKG:
 
             return
         converter.run(skip_build=False)
-        logger.debug(f"converter.result: {converter.result}")
+        logger.info(f"converter.result: {converter.result}")
         with open("/in/result.yml", "a+") as out:
             out.write(f"{converter.result}\n")
         if (
