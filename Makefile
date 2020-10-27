@@ -7,4 +7,5 @@ run-onboard:
 	-v ${PWD}/onboard/input:/in:rw,Z \
 	-e PAGURE_TOKEN=${PAGURE_TOKEN} \
 	-e GITLAB_TOKEN=${GITLAB_TOKEN} \
+	-e SKIP_BUILD=${SKIP_BUILD} \
 	centos-onboard
