@@ -126,7 +126,7 @@ class CentosPkgValidatedConvert:
         if self.convert():
             self.run_srpm()
             self.result["size"] = (
-                subprocess.check_output(["du", "-s", self.src_dir])
+                subprocess.check_output(["du", "-sh", self.src_dir])
                 .split()[0]
                 .decode("utf-8")
             )
@@ -134,7 +134,7 @@ class CentosPkgValidatedConvert:
                 self.do_mock_build()
         else:
             self.result["size_rpms"] = (
-                subprocess.check_output(["du", "-s", self.rpm_dir])
+                subprocess.check_output(["du", "-sh", self.rpm_dir])
                 .split()[0]
                 .decode("utf-8")
             )
