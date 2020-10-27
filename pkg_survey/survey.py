@@ -123,13 +123,7 @@ class CentosPkgValidatedConvert:
                 }
             )
 
-        if not self.convert():
-            self.result["size_rpms"] = (
-                subprocess.check_output(["du", "-s", self.rpm_dir])
-                .split()[0]
-                .decode("utf-8")
-            )
-        else:
+        if self.convert():
             self.run_srpm()
             self.result["size"] = (
                 subprocess.check_output(["du", "-s", self.src_dir])
@@ -138,6 +132,12 @@ class CentosPkgValidatedConvert:
             )
             if self.srpm_path and not skip_build:
                 self.do_mock_build()
+        else:
+            self.result["size_rpms"] = (
+                subprocess.check_output(["du", "-s", self.rpm_dir])
+                .split()[0]
+                .decode("utf-8")
+            )
         if cleanup:
             self.cleanup()
 
