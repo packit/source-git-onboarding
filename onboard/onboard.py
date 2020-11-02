@@ -1,6 +1,7 @@
 import logging
-import os
 import sys
+from os import getenv
+from pathlib import Path
 from typing import List
 
 from git import Repo
@@ -14,7 +15,7 @@ from add_master_branch import AddMasterBranch
 from survey import CentosPkgValidatedConvert
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=os.getenv("LOGLEVEL", "INFO"))
+logging.basicConfig(level=getenv("LOGLEVEL", "INFO"))
 
 DEFAULT_BRANCH = "c8s"
 
@@ -32,7 +33,11 @@ class OnboardCentosPKG:
         self.maintainers = maintainers
         self.maintainers_group = maintainers_group
 
-    def run(self, pkg_name, branch):
+    def run(self, pkg_name, branch, skip_build=False):
+        logger.info(
+            f"Onboarding {pkg_name} using '{branch}' branch."
+            f"{' Skipping build.' if skip_build else ''}"
+        )
         converter = CentosPkgValidatedConvert(
             {
                 "fullname": f"rpms/{pkg_name}",
@@ -53,7 +58,7 @@ class OnboardCentosPKG:
                 project.gitlab_repo.save()
 
             return
-        converter.run(skip_build=False)
+        converter.run(skip_build=skip_build)
         logger.info(f"converter.result: {converter.result}")
         with open("/in/result.yml", "a+") as out:
             out.write(f"{converter.result}\n")
@@ -98,8 +103,8 @@ class OnboardCentosPKG:
 
 if __name__ == "__main__":
 
-    pagure_token = os.getenv("PAGURE_TOKEN")
-    gitlab_token = os.getenv("GITLAB_TOKEN")
+    pagure_token = getenv("PAGURE_TOKEN")
+    gitlab_token = getenv("GITLAB_TOKEN")
     if pagure_token:
         ocp = OnboardCentosPKG(
             service=PagureService(
@@ -122,7 +127,7 @@ if __name__ == "__main__":
         logger.error("Define PAGURE_TOKEN or GITLAB_TOKEN")
         sys.exit(1)
 
-    os.makedirs("/tmp/playground/rpms", exist_ok=True)
+    Path("/tmp/playground/rpms").mkdir(parents=True, exist_ok=True)
     with open("/in/input-pkgs.yml", "r") as f:
         in_pkgs = f.readlines()
 
@@ -135,5 +140,4 @@ if __name__ == "__main__":
             package, branch = split
         else:
             package, branch = split[0], DEFAULT_BRANCH
-        logger.info(f"Onboarding {package} using '{branch}' branch")
-        ocp.run(pkg_name=package, branch=branch)
+        ocp.run(pkg_name=package, branch=branch, skip_build=bool(getenv("SKIP_BUILD")))
