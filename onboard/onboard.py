@@ -2,7 +2,7 @@ import logging
 import sys
 from os import getenv
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from git import Repo
 
@@ -17,7 +17,7 @@ from survey import CentosPkgValidatedConvert
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=getenv("LOGLEVEL", "INFO"))
 
-DEFAULT_BRANCH = "c8s"
+C8S_BRANCHES = ["c8s", "c8s-stream-rhel", "c8"]
 work_dir = Path("/tmp/playground")
 
 
@@ -63,10 +63,32 @@ class OnboardCentosPKG:
 
         return project
 
+    @staticmethod
+    def get_distgit_branch(pkg_name: str) -> Optional[str]:
+        logger.info("No branch specified. Inspecting dist-git.")
+        dg_token = getenv("DISTGIT_TOKEN")
+        if not dg_token:
+            logger.error(f"No DISTGIT_TOKEN specified. Trying {C8S_BRANCHES[0]}")
+            return C8S_BRANCHES[0]
+        service = PagureService(token=dg_token, instance_url="https://git.centos.org/")
+        dg_project = service.get_project(namespace="rpms", repo=pkg_name)
+        branches = dg_project.get_branches()
+        for b in C8S_BRANCHES:
+            if b in branches:
+                return b
+        else:
+            logger.error(f"No {C8S_BRANCHES} branch in dist-git repo of {pkg_name}.")
+            return None
+
     def run(self, pkg_name: str, branch: str, skip_build: bool = False):
         action = "Updating" if self.update else "Onboarding"
+
+        if not branch:
+            logger.info(f"No branch. {action} {pkg_name} canceled.")
+            return
+
         logger.info(
-            f"{action} {pkg_name} using '{branch}' branch."
+            f"{action} {pkg_name} using {branch} branch."
             f"{' Skipping build.' if skip_build else ''}"
         )
 
@@ -155,5 +177,5 @@ if __name__ == "__main__":
         if len(split) == 2:
             package, branch = split
         else:
-            package, branch = split[0], DEFAULT_BRANCH
+            package, branch = split[0], ocp.get_distgit_branch(pkg_name=split[0])
         ocp.run(pkg_name=package, branch=branch, skip_build=bool(getenv("SKIP_BUILD")))

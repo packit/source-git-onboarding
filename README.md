@@ -5,6 +5,7 @@ Automate onboarding with https://github.com/packit/dist-git-to-source-git
 ## Configure
 
 For `PAGURE_TOKEN` & `GITLAB_TOKEN` see `secrets/stg/packit-service.yaml` in our private repo.
+For `DISTGIT_TOKEN` see `secrets/prod/packit-service.yaml` in our private repo.
 
 Don't forget to `sudo setenforce 0` otherwise mock fails with
 `/bin/mount -n -t tmpfs -o rprivate tmpfs /var/lib/mock/centos-stream-x86_64-bootstrap/root/proc`

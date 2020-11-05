@@ -9,6 +9,7 @@ run-onboard:
 	-v ${PWD}/pkg_survey/survey.py:/workdir/survey.py:ro,Z \
 	-e PAGURE_TOKEN=${PAGURE_TOKEN} \
 	-e GITLAB_TOKEN=${GITLAB_TOKEN} \
+	-e DISTGIT_TOKEN=${DISTGIT_TOKEN} \
 	-e SKIP_BUILD=${SKIP_BUILD} \
 	-e UPDATE=${UPDATE} \
 	centos-onboard
