@@ -7,7 +7,7 @@ from typing import List
 from git import Repo
 
 from ogr import GitlabService
-from ogr.abstract import AccessLevel, GitService
+from ogr.abstract import AccessLevel, GitService, GitProject
 from ogr.services.gitlab import GitlabProject
 from ogr.services.pagure import PagureService
 
@@ -36,7 +36,7 @@ class OnboardCentosPKG:
         self.maintainers_group = maintainers_group
         self.update = update
 
-    def create_sg_repo(self, pkg_name):
+    def create_sg_repo(self, pkg_name: str) -> GitProject:
         logger.info(
             f"Creating source-git repo: {self.namespace}/{pkg_name} at {self.service.instance_url}"
         )
@@ -63,7 +63,7 @@ class OnboardCentosPKG:
 
         return project
 
-    def run(self, pkg_name, branch, skip_build=False):
+    def run(self, pkg_name: str, branch: str, skip_build: bool = False):
         action = "Updating" if self.update else "Onboarding"
         logger.info(
             f"{action} {pkg_name} using '{branch}' branch."
@@ -102,7 +102,7 @@ class OnboardCentosPKG:
             return
         logger.info(f"{action} successful for {pkg_name}:")
         if not project.exists():
-            self.create_sg_repo(pkg_name)
+            project = self.create_sg_repo(pkg_name)
 
         git_repo = Repo(converter.src_package_dir)
         git_repo.create_remote("packit", project.get_git_urls()["ssh"])
