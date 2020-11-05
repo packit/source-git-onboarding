@@ -38,11 +38,10 @@ class CentosPkgValidatedConvert:
         self.distgit_branch = distgit_branch
         self.d2s: Optional[Dist2Src] = None
 
-    def clone(self):
-        git_url = f"https://git.centos.org/{self.project_info['fullname']}"
+    def clone(self, git_url: str, dir: Path):
         try:
-            git.Git(rpms_path).clone(git_url)
-            r = git.Repo(rpms_path / self.project_info["name"])
+            git.Git(dir).clone(git_url)
+            r = git.Repo(dir / self.package_name)
             r.git.checkout(self.distgit_branch)
             return True
         except Exception as ex:
@@ -99,9 +98,16 @@ class CentosPkgValidatedConvert:
                     result.append(found.group(1))
         return result
 
-    def run(self, cleanup=False, skip_build=False):
-        if not self.clone():
+    def run(self, cleanup=False, skip_build=False, clone_sg: bool = False):
+        if not self.clone(
+            git_url=f"https://git.centos.org/rpms/{self.package_name}", dir=rpms_dir
+        ):
             return
+        if clone_sg:
+            self.clone(
+                git_url=f"https://git.stg.centos.org/source-git/{self.package_name}",
+                dir=src_dir,
+            )
 
         self.rpm_dir = rpms_path / self.project_info["name"]
         self.src_dir = work_dir / "src" / self.project_info["name"]

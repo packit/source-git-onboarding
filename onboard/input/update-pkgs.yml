@@ -1,0 +1,2 @@
+# Put packages:branches (one per line, example: apr:c8s) that you want update and run
+# UPDATE=yes make run-onboard
