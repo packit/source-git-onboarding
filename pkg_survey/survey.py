@@ -44,7 +44,9 @@ class CentosPkgValidatedConvert:
             r.git.checkout(self.distgit_branch)
             return True
         except Exception as ex:
-            if f"Remote branch {self.distgit_branch} not found" in str(ex):
+            if f"Remote branch {self.distgit_branch} not found" in str(
+                ex
+            ) or f"pathspec '{self.distgit_branch}' did not match" in str(ex):
                 return False
             self.result["package_name"] = self.package_name
             self.result["error"] = f"CloneError: {ex}"
