@@ -128,7 +128,8 @@ class OnboardCentosPKG:
 
         git_repo = Repo(converter.src_package_dir)
         git_repo.create_remote("packit", project.get_git_urls()["ssh"])
-        # dist2src update moves sg-start tag, we need --force to move it in remote
+        git_repo.git.push("packit", branch)
+        # dist2src update moves sg-start tag, we also need --force to move it in remote
         git_repo.git.push("packit", branch, tags=True, force=self.update)
 
         converter.cleanup()
