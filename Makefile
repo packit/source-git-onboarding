@@ -1,8 +1,10 @@
+CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
+
 build-onboard:
-	podman build . -t centos-onboard -f onboard/Containerfile
+	$(CONTAINER_ENGINE) build . -t centos-onboard -f onboard/Containerfile
 
 run-onboard:
-	podman run --rm -ti --cap-add=SYS_ADMIN \
+	$(CONTAINER_ENGINE) run --rm -ti --cap-add=SYS_ADMIN \
 	-v ${HOME}/.ssh:/my-ssh:ro,Z \
 	-v ${PWD}/onboard/input:/in:rw,Z \
 	-v ${PWD}/onboard/onboard.py:/workdir/onboard.py:ro,Z \
