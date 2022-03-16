@@ -43,5 +43,5 @@ repos:
     hooks:
       - id: check-rebase
         args:
-          - git://github.com/packit/source-git-onboarding.git
+          - https://github.com/packit/source-git-onboarding.git
         stages: [manual, push]
