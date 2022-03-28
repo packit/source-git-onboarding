@@ -37,7 +37,8 @@ repos:
     hooks:
       - id: mypy
         args: [--no-strict-optional, --ignore-missing-imports]
-        additional_dependencies: [types-click, types-requests, types-PyYAML]
+        additional_dependencies:
+          [types-click, types-requests, types-PyYAML, types-tabulate]
   - repo: https://github.com/packit/pre-commit-hooks
     rev: 1da916777f5cc26ecf221b15e58ca51891d26d94
     hooks:
